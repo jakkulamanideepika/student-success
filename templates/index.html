@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Prediction Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 40px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-card.green { border-left-color: #10b981; }
+        .stat-card.green .stat-value { color: #10b981; }
+        
+        .stat-card.yellow { border-left-color: #f59e0b; }
+        .stat-card.yellow .stat-value { color: #f59e0b; }
+        
+        .stat-card.red { border-left-color: #ef4444; }
+        .stat-card.red .stat-value { color: #ef4444; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        /* Student List */
+        .student-search {
+            margin-bottom: 20px;
+        }
+
+        .student-search input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .student-search input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .student-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .student-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .student-item.green { border-left-color: #10b981; }
+        .student-item.yellow { border-left-color: #f59e0b; }
+        .student-item.red { border-left-color: #ef4444; }
+
+        .student-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .student-id {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .risk-badge.green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .risk-badge.yellow {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .risk-badge.red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Custom Analysis Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        button.primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Results */
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .result-header h3 {
+            font-size: 1.5rem;
+        }
+
+        .confidence-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .risk-indicator {
+            text-align: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .risk-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .risk-status {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .predicted-grade {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .info-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-section ul {
+            list-style: none;
+        }
+
+        .info-section li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-section li:last-child {
+            border-bottom: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🎓 Student Performance Prediction Dashboard</h1>
+            <div class="user-info">
+                <span class="user-name">{{ user.full_name }} ({{ user.institution }})</span>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Statistics -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-label">Total Students</div>
+                <div class="stat-value" id="totalStudents">-</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">Green (Safe)</div>
+                <div class="stat-value" id="greenCount">-</div>
+            </div>
+            <div class="stat-card yellow">
+                <div class="stat-label">Yellow (At Risk)</div>
+                <div class="stat-value" id="yellowCount">-</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-label">Red (High Risk)</div>
+                <div class="stat-value" id="redCount">-</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('student-list')">📚 Student List</button>
+            <button class="tab" onclick="switchTab('custom-analysis')">🔍 Custom Analysis</button>
+            <button class="tab" onclick="switchTab('about')">ℹ️ About System</button>
+        </div>
+
+        <!-- Student List Tab -->
+        <div id="student-list" class="tab-content active">
+            <div class="card">
+                <h2>Select a Student for AI Analysis</h2>
+                <div class="student-search">
+                    <input type="text" id="searchInput" placeholder="🔍 Search students by name or ID..." onkeyup="filterStudents()">
+                </div>
+                <div class="student-grid" id="studentGrid">
+                    <!-- Students will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Analysis Tab -->
+        <div id="custom-analysis" class="tab-content">
+            <div class="card">
+                <h2>Custom Student Analysis</h2>
+                <p style="color: #666; margin-bottom: 20px;">Enter student data manually for AI-powered risk prediction</p>
+                
+                <form id="customForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Student ID</label>
+                            <input type="text" id="custom_student_id" value="CUSTOM_001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Student Name</label>
+                            <input type="text" id="custom_name" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input type="number" id="custom_age" min="18" max="25" value="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="custom_gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Attendance (%)</label>
+                            <input type="number" id="custom_attendance" min="0" max="100" step="0.1" value="85" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Assignment Score</label>
+                            <input type="number" id="custom_assignment" min="0" max="100" step="0.1" value="75" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Midterm Score</label>
+                            <input type="number" id="custom_midterm" min="0" max="100" step="0.1" value="78" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Participation Score</label>
+                            <input type="number" id="custom_participation" min="0" max="100" step="0.1" value="80" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Study Hours/Week</label>
+                            <input type="number" id="custom_study_hours" min="0" max="40" step="0.1" value="15" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Previous GPA</label>
+                            <input type="number" id="custom_gpa" min="0" max="10" step="0.01" value="6.0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Family Support</label>
+                            <select id="custom_family_support">
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Internet Access</label>
+                            <select id="custom_internet">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Part-time Job</label>
+                            <select id="custom_job">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Commute Time (min)</label>
+                            <input type="number" id="custom_commute" min="0" max="180" value="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Scholarship</label>
+                            <select id="custom_scholarship">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Financial Stress</label>
+                            <select id="custom_financial_stress">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sleep Hours/Day</label>
+                            <input type="number" id="custom_sleep" min="0" max="12" step="0.1" value="7" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stress Level</label>
+                            <select id="custom_stress">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Extracurricular</label>
+                            <select id="custom_extracurricular">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="primary">🔮 Analyze with AI</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div id="about" class="tab-content">
+            <div class="card">
+                <h2>About the System</h2>
+                
+                <h3 style="margin-top: 30px;">🌲 Random Forest Classification</h3>
+                <p style="line-height: 1.8; color: #666;">
+                    This system uses <strong>Random Forest</strong>, a powerful machine learning algorithm that combines multiple decision trees to make accurate predictions. Each tree analyzes student data from different angles, and they "vote" together to reach a final conclusion.
+                </p>
+
+                <h3 style="margin-top: 30px;">🎯 Risk Categories</h3>
+                <div style="margin-top: 20px;">
+                    <div style="padding: 15px; background: #d1fae5; border-left: 4px solid #10b981; margin-bottom: 10px; border-radius: 8px;">
+                        <strong style="color: #065f46;">🟢 Green (Low Risk):</strong> <span style="color: #065f46;">Student is performing well and likely to pass with high marks (75%+)</span>
+                    </div>
+                    <div style="padding: 15px; background: #fef3c7; border-left: 4px solid #f59e0b; margin-bottom: 10px; border-radius: 8px;">
+                        <strong style="color: #92400e;">🟡 Yellow (Medium Risk):</strong> <span style="color: #92400e;">Student needs support and guidance (55-75% expected)</span>
+                    </div>
+                    <div style="padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; margin-bottom: 10px; border-radius: 8px;">
+                        <strong style="color: #991b1b;">🔴 Red (High Risk):</strong> <span style="color: #991b1b;">Student is at high risk of failing (<55% expected) - immediate intervention needed</span>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px;">📊 Key Factors Analyzed</h3>
+                <ul style="line-height: 2; color: #666; margin-left: 20px;">
+                    <li><strong>Attendance (40% weight):</strong> Most important predictor</li>
+                    <li><strong>Academic Scores (30% weight):</strong> Assignments & midterms</li>
+                    <li><strong>Study Habits (15% weight):</strong> Study hours & discipline</li>
+                    <li><strong>Previous GPA (15% weight):</strong> Historical performance</li>
+                    <li><strong>External Factors:</strong> Family support, financial stress, health</li>
+                </ul>
+
+                <h3 style="margin-top: 30px;">✨ Benefits</h3>
+                <ul style="line-height: 2; color: #666; margin-left: 20px;">
+                    <li>🚨 <strong>Early Warning:</strong> Identify at-risk students in week 2, not week 10</li>
+                    <li>🎯 <strong>Targeted Support:</strong> Provide resources to students who need them most</li>
+                    <li>📈 <strong>Improved Outcomes:</strong> Increase graduation rates and student success</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" style="display: none;"></div>
+    </div>
+
+    <script>
+        let studentsData = [];
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalStudents').textContent = stats.total_students;
+                document.getElementById('greenCount').textContent = stats.green;
+                document.getElementById('yellowCount').textContent = stats.yellow;
+                document.getElementById('redCount').textContent = stats.red;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load students
+        async function loadStudents() {
+            try {
+                const response = await fetch('/api/students');
+                studentsData = await response.json();
+                displayStudents(studentsData);
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
+        }
+
+        function displayStudents(students) {
+            const grid = document.getElementById('studentGrid');
+            grid.innerHTML = students.map(student => `
+                <div class="student-item ${student.risk_category.toLowerCase()}" onclick="analyzeStudent('${student.student_id}')">
+                    <div class="student-name">${student.name}</div>
+                    <div class="student-id">${student.student_id}</div>
+                    <span class="risk-badge ${student.risk_category.toLowerCase()}">${student.risk_category}</span>
+                </div>
+            `).join('');
+        }
+
+        function filterStudents() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = studentsData.filter(s => 
+                s.name.toLowerCase().includes(search) || 
+                s.student_id.toLowerCase().includes(search)
+            );
+            displayStudents(filtered);
+        }
+
+        async function analyzeStudent(studentId) {
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').innerHTML = '<div class="loading"><div class="spinner"></div><p>AI is analyzing student data...</p></div>';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id: studentId })
+                });
+
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<div class="card"><p style="color: #ef4444;">Error: ${error.message}</p></div>`;
+            }
+        }
+
+        document.getElementById('customForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                student_id: document.getElementById('custom_student_id').value,
+                name: document.getElementById('custom_name').value,
+                age: parseFloat(document.getElementById('custom_age').value),
+                gender: document.getElementById('custom_gender').value,
+                attendance_percentage: parseFloat(document.getElementById('custom_attendance').value),
+                assignment_score: parseFloat(document.getElementById('custom_assignment').value),
+                midterm_score: parseFloat(document.getElementById('custom_midterm').value),
+                participation_score: parseFloat(document.getElementById('custom_participation').value),
+                study_hours_per_week: parseFloat(document.getElementById('custom_study_hours').value),
+                previous_gpa: parseFloat(document.getElementById('custom_gpa').value),
+                family_support: document.getElementById('custom_family_support').value,
+                internet_access: document.getElementById('custom_internet').value,
+                part_time_job: document.getElementById('custom_job').value,
+                commute_time_minutes: parseFloat(document.getElementById('custom_commute').value),
+                scholarship: document.getElementById('custom_scholarship').value,
+                financial_stress: document.getElementById('custom_financial_stress').value,
+                sleep_hours: parseFloat(document.getElementById('custom_sleep').value),
+                stress_level: document.getElementById('custom_stress').value,
+                extracurricular_activities: document.getElementById('custom_extracurricular').value
+            };
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').innerHTML = '<div class="loading"><div class="spinner"></div><p>AI is analyzing student data...</p></div>';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const response = await fetch('/api/analyze-custom', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                result.student_name = data.name;
+                result.student_id = data.student_id;
+                result.attendance = data.attendance_percentage;
+                result.assignment_score = data.assignment_score;
+                result.midterm_score = data.midterm_score;
+                result.previous_gpa = data.previous_gpa;
+                displayResults(result);
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<div class="card"><p style="color: #ef4444;">Error: ${error.message}</p></div>`;
+            }
+        });
+
+        function displayResults(result) {
+            const riskIcons = {
+                'Green': '✅',
+                'Yellow': '⚠️',
+                'Red': '🚨'
+            };
+
+            document.getElementById('results').innerHTML = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h3>AI Analysis Results - ${result.student_name}</h3>
+                        <div class="confidence-badge">Confidence: ${result.confidence.toFixed(1)}%</div>
+                    </div>
+
+                    <div class="risk-indicator">
+                        <div class="risk-icon">${riskIcons[result.risk_category]}</div>
+                        <div class="risk-status">${result.risk_category} Risk</div>
+                        <div class="predicted-grade">Predicted Grade: ${result.predicted_grade.toFixed(1)}%</div>
+                        <div class="predicted-grade">Priority: ${result.intervention_priority}</div>
+                    </div>
+
+                    <div class="info-section" style="margin-bottom: 20px;">
+                        <h4>🤖 AI Analysis</h4>
+                        <p style="line-height: 1.8;">${result.analysis}</p>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-section">
+                            <h4>📊 Academic Performance</h4>
+                            <ul>
+                                <li>Attendance: ${result.attendance?.toFixed(1)}%</li>
+                                <li>Assignment: ${result.assignment_score?.toFixed(1)}/100</li>
+                                <li>Midterm: ${result.midterm_score?.toFixed(1)}/100</li>
+                                <li>Previous GPA: ${result.previous_gpa?.toFixed(2)}/4.0</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>⚠️ Key Risk Factors</h4>
+                            <ul>
+                                ${result.key_risk_factors.map(f => `<li>• ${f}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>💪 Strengths</h4>
+                            <ul>
+                                ${result.key_strengths.map(s => `<li>• ${s}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>💡 Recommendations</h4>
+                            <ul>
+                                ${result.recommendations.map(r => `<li>• ${r}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Load data on page load
+        loadStats();
+        loadStudents();
+    </script>
+</body>
+</html>
